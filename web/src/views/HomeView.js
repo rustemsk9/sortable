@@ -268,6 +268,7 @@ sortData() {
     if (!s) return null;
 
     const low = s.toLowerCase();
+    if (value.includes('(Galan)')) { return null; }
     // Quick reject common non-numeric tokens
     if (/^(variable|varies|n\/a|na|unknown|null|-|—|–|—)$/i.test(low)) return null;
 
@@ -278,7 +279,8 @@ sortData() {
     // Normalize comma thousand separators and parse
     const numericString = match[0].replace(/,/g, '');
     const n = parseFloat(numericString);
-    return Number.isFinite(n) ? n : null;
+    return n
+    // return Number.isFinite(n) ? n : null;
   }
 
   renderTable() {
