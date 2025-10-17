@@ -8,115 +8,13 @@ export default class extends AbstractView {
         this.totalItems = 0;
         this.pageSize = 20;
         this.pageChangeCallback = null;
+
     }
 
     async getHtml() {
-        return `
-            <div class='paginator-view'>
-                <div class="pagination-info">
-                    <span id="paginator-info">Loading...</span>
-                </div>
-                <div class="pagination-controls">
-                    <button id="paginator-prev" class="page-btn" disabled>Previous</button>
-                    <div id="paginator-numbers" class="page-numbers"></div>
-                    <button id="paginator-next" class="page-btn">Next</button>
-                </div>
-            </div>
-            
-            <style>
-                .paginator-view {
-                    background: #f8f9fa;
-                    padding: 15px 20px;
-                    border-top: 1px solid #dee2e6;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    gap: 15px;
-                }
-                
-                .pagination-info {
-                    color: #6c757d;
-                    font-size: 14px;
-                }
-                
-                .pagination-controls {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                
-                .page-btn {
-                    padding: 8px 16px;
-                    border: 1px solid #dee2e6;
-                    background: white;
-                    color: #495057;
-                    cursor: pointer;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                }
-                
-                .page-btn:hover:not(:disabled) {
-                    background-color: #e9ecef;
-                    border-color: #adb5bd;
-                }
-                
-                .page-btn:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                    background-color: #f8f9fa;
-                }
-                
-                .page-numbers {
-                    display: flex;
-                    gap: 5px;
-                }
-                
-                .page-number {
-                    padding: 6px 12px;
-                    border: 1px solid #dee2e6;
-                    background: white;
-                    color: #495057;
-                    cursor: pointer;
-                    border-radius: 4px;
-                    text-decoration: none;
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    user-select: none;
-                }
-                
-                .page-number:hover {
-                    background-color: #e9ecef;
-                    border-color: #adb5bd;
-                }
-                
-                .page-number.active {
-                    background-color: #007bff;
-                    color: white;
-                    border-color: #007bff;
-                }
-                
-                .page-ellipsis {
-                    padding: 6px 8px;
-                    color: #6c757d;
-                    user-select: none;
-                }
-                
-                @media (max-width: 768px) {
-                    .paginator-view {
-                        flex-direction: column;
-                        text-align: center;
-                        gap: 10px;
-                    }
-                    
-                    .pagination-controls {
-                        flex-wrap: wrap;
-                        justify-content: center;
-                    }
-                }
-            </style>
-        `;
+        const response = await fetch("/src/views/paginator.html");
+        const htmlString = await response.text();
+        return htmlString;
     }
 
     async init() {
