@@ -18,9 +18,16 @@ export default class extends AbstractView {
     }
 
     async init() {
+        // Wait a bit to ensure DOM elements are ready
+        await new Promise(resolve => setTimeout(resolve, 10));
         this.setupEventListeners();
         this.render();
         console.log("Paginator initialized");
+        
+        // Notify HomeView that paginator is ready
+        if (window.currentHomeView && typeof window.currentHomeView.onPaginatorReady === 'function') {
+            window.currentHomeView.onPaginatorReady();
+        }
     }
 
     setupEventListeners() {
@@ -53,10 +60,20 @@ export default class extends AbstractView {
     }
 
     updatePagination(currentPage, totalItems, pageSize) {
+        console.log(`Paginator update: page ${currentPage}, total ${totalItems}, pageSize ${pageSize}`);
         this.currentPage = currentPage;
         this.totalItems = totalItems;
         this.pageSize = pageSize;
         this.totalPages = Math.ceil(totalItems / pageSize);
+        
+        // Ensure current page is within valid range
+        if (this.currentPage > this.totalPages && this.totalPages > 0) {
+            this.currentPage = this.totalPages;
+        }
+        if (this.currentPage < 1) {
+            this.currentPage = 1;
+        }
+        
         this.render();
     }
 

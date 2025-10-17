@@ -27,6 +27,12 @@ export default class extends AbstractView {
                             <option value="all">All</option>
                         </select>
                     </div>
+                    <div class="notification-container">
+                        <button id="navbar-refresh-notification" class="refresh-notification-btn" style="display: none;" title="New data available - click to refresh">
+                            <span class="exclamation">!</span>
+                            <span class="refresh-text">Refresh Data</span>
+                        </button>
+                    </div>
                 </div>
             </nav>
             
@@ -83,6 +89,46 @@ export default class extends AbstractView {
                     font-size: 14px;
                 }
                 
+                .refresh-notification-btn {
+                    background: #ffc107;
+                    color: #212529;
+                    border: none;
+                    padding: 8px 12px;
+                    border-radius: 20px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    transition: all 0.3s ease;
+                    animation: pulse 2s infinite;
+                }
+                
+                .refresh-notification-btn:hover {
+                    background: #ffb300;
+                    transform: scale(1.05);
+                }
+                
+                .refresh-notification-btn .exclamation {
+                    background: #dc3545;
+                    color: white;
+                    border-radius: 50%;
+                    width: 18px;
+                    height: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+                
+                @keyframes pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+                    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+                }
+                
                 @media (max-width: 768px) {
                     .navbar {
                         flex-direction: column;
@@ -97,6 +143,18 @@ export default class extends AbstractView {
                     .search-container input {
                         width: 200px;
                     }
+                    
+                    .refresh-notification-btn .refresh-text {
+                        display: none;
+                    }
+                    
+                    .refresh-notification-btn {
+                        padding: 8px;
+                        border-radius: 50%;
+                        width: 36px;
+                        height: 36px;
+                        justify-content: center;
+                    }
                 }
             </style>
         `;
@@ -110,6 +168,7 @@ export default class extends AbstractView {
     setupEventListeners() {
         const searchInput = document.getElementById('navbar-search');
         const pageSizeSelect = document.getElementById('navbar-page-size');
+        const refreshButton = document.getElementById('navbar-refresh-notification');
 
         if (searchInput && this.searchCallback) {
             searchInput.addEventListener('input', (e) => {
@@ -121,6 +180,12 @@ export default class extends AbstractView {
             pageSizeSelect.addEventListener('change', (e) => {
                 const value = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
                 this.pageSizeCallback(value);
+            });
+        }
+
+        if (refreshButton) {
+            refreshButton.addEventListener('click', () => {
+                this.handleRefreshClick();
             });
         }
     }
@@ -152,6 +217,28 @@ export default class extends AbstractView {
         const pageSizeSelect = document.getElementById('navbar-page-size');
         if (pageSizeSelect) {
             pageSizeSelect.value = size;
+        }
+    }
+
+    showRefreshNotification() {
+        const refreshButton = document.getElementById('navbar-refresh-notification');
+        if (refreshButton) {
+            refreshButton.style.display = 'flex';
+        }
+    }
+
+    hideRefreshNotification() {
+        const refreshButton = document.getElementById('navbar-refresh-notification');
+        if (refreshButton) {
+            refreshButton.style.display = 'none';
+        }
+    }
+
+    handleRefreshClick() {
+        this.hideRefreshNotification();
+        // Trigger data refresh through global event or callback
+        if (window.currentHomeView && typeof window.currentHomeView.refreshData === 'function') {
+            window.currentHomeView.refreshData();
         }
     }
 }

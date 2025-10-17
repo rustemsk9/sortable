@@ -1,5 +1,5 @@
 import AbstractView from "./AbstractView.js";
-import * as HomeUtils from "../utils/home/index.js";
+// import * as HomeUtils from "../utils/home/index.js";
 
 export default class extends AbstractView {
   constructor() {
@@ -71,7 +71,17 @@ export default class extends AbstractView {
       });
     }
 
-    // Set up callback for paginator
+    // Set up callback for paginator (if already available)
+    this.setupPaginatorCallback();
+  }
+
+  // Called when paginator is ready
+  onPaginatorReady() {
+    this.setupPaginatorCallback();
+    this.updatePaginatorState();
+  }
+
+  setupPaginatorCallback() {
     const paginatorElement = document.querySelector('#paginator');
     if (paginatorElement && window.currentPaginatorView) {
       window.currentPaginatorView.setPageChangeCallback((page) => {
@@ -116,9 +126,11 @@ export default class extends AbstractView {
   }
 
   handlePageChange(page) {
+    console.log(`Page change requested: ${page}`);
     this.currentPage = page;
     this.renderTable();
-    this.updatePaginatorState();
+    // Don't call updatePaginatorState here to avoid circular updates
+    // The paginator already knows its own state
   }
 
   filterData() {
@@ -279,7 +291,8 @@ export default class extends AbstractView {
   }
 
   updatePaginatorState() {
-    if (window.currentPaginatorView) {
+    if (window.currentPaginatorView && typeof window.currentPaginatorView.updatePagination === 'function') {
+      console.log(`Updating paginator state: page ${this.currentPage}, total ${this.filteredHeroes.length}, pageSize ${this.pageSize}`);
       window.currentPaginatorView.updatePagination(
         this.currentPage,
         this.filteredHeroes.length,

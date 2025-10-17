@@ -1,7 +1,7 @@
 class DataLoader {
   constructor() {
     this.lastModified = null;
-    this.checkInterval = 2000; // Check every 2 seconds
+    this.checkInterval = 10000; // Check every 10 seconds
     this.intervalId = null;
     this.dataChangeCallbacks = [];
     this.isRunning = false;
