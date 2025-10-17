@@ -54,10 +54,33 @@ class DataUpdater {
       
       this.originalData = await response.json();
       this.currentData = JSON.parse(JSON.stringify(this.originalData)); // Deep clone
+      
+      // Load previously added heroes from localStorage
+      this.loadAddedHeroes();
+      
       console.log('DataUpdater: Loaded original data with', this.originalData.length, 'heroes');
+      if (this.addedHeroes.length > 0) {
+        console.log('DataUpdater: Restored', this.addedHeroes.length, 'previously added heroes');
+      }
     } catch (error) {
       console.error('DataUpdater: Error loading original data:', error);
       throw error;
+    }
+  }
+
+  // Load added heroes from localStorage
+  loadAddedHeroes() {
+    try {
+      const savedHeroes = localStorage.getItem('updatedHeroesData');
+      if (savedHeroes) {
+        this.addedHeroes = JSON.parse(savedHeroes);
+        // Add them to current data
+        this.currentData = [...this.originalData, ...this.addedHeroes];
+        console.log('DataUpdater: Loaded', this.addedHeroes.length, 'added heroes from localStorage');
+      }
+    } catch (error) {
+      console.error('DataUpdater: Error loading added heroes from localStorage:', error);
+      this.addedHeroes = [];
     }
   }
 
@@ -103,28 +126,34 @@ class DataUpdater {
     }
   }
 
-  // Simulate writing data to the server
+  // Simulate writing data to the server and save to updated.data.json
   async simulateDataWrite() {
     // In a real scenario, this would make a POST/PUT request to update the server data
-    // For our fake updater, we'll simulate the server response
+    // For our fake updater, we'll save added heroes to localStorage to simulate persistence
     
     return new Promise((resolve) => {
       setTimeout(() => {
+        // Save added heroes to localStorage (simulating updated.data.json)
+        localStorage.setItem('updatedHeroesData', JSON.stringify(this.addedHeroes));
+        
         // Trigger the data change detection by updating localStorage
-        // This simulates the server responding with updated data
         const fakeUpdate = {
           timestamp: Date.now(),
           dataLength: this.currentData.length,
-          lastHero: this.addedHeroes[this.addedHeroes.length - 1]?.name
+          lastHero: this.addedHeroes[this.addedHeroes.length - 1]?.name,
+          addedHeroesCount: this.addedHeroes.length
         };
         
         localStorage.setItem('fakeDataUpdate', JSON.stringify(fakeUpdate));
+        
+        console.log('DataUpdater: Saved', this.addedHeroes.length, 'added heroes to localStorage');
         
         // Dispatch a custom event to notify components
         window.dispatchEvent(new CustomEvent('dataUpdated', {
           detail: {
             newHero: this.addedHeroes[this.addedHeroes.length - 1],
-            totalHeroes: this.currentData.length
+            totalHeroes: this.currentData.length,
+            addedHeroes: this.addedHeroes
           }
         }));
         
@@ -143,14 +172,48 @@ class DataUpdater {
     return this.addedHeroes;
   }
 
+  // Get combined data (original + added heroes) - static method for external use
+  static async getCombinedData() {
+    try {
+      // Load original data
+      const response = await fetch('/src/data/data.json', { cache: 'no-cache' });
+      const originalData = await response.json();
+      
+      // Load added heroes from localStorage
+      const savedHeroes = localStorage.getItem('updatedHeroesData');
+      const addedHeroes = savedHeroes ? JSON.parse(savedHeroes) : [];
+      
+      // Combine and return
+      const combinedData = [...originalData, ...addedHeroes];
+      console.log('DataUpdater: Combined data - Original:', originalData.length, 'Added:', addedHeroes.length, 'Total:', combinedData.length);
+      
+      return combinedData;
+    } catch (error) {
+      console.error('DataUpdater: Error getting combined data:', error);
+      // Fallback to just original data
+      const response = await fetch('/src/data/data.json', { cache: 'no-cache' });
+      return await response.json();
+    }
+  }
+
   // Reset to original data
   reset() {
     if (this.originalData) {
       this.currentData = JSON.parse(JSON.stringify(this.originalData));
       this.addedHeroes = [];
       this.updateCount = 0;
-      console.log('DataUpdater: Reset to original data');
+      // Clear localStorage
+      localStorage.removeItem('updatedHeroesData');
+      localStorage.removeItem('fakeDataUpdate');
+      console.log('DataUpdater: Reset to original data and cleared localStorage');
     }
+  }
+
+  // Clear all added heroes (static method for external use)
+  static clearAddedHeroes() {
+    localStorage.removeItem('updatedHeroesData');
+    localStorage.removeItem('fakeDataUpdate');
+    console.log('DataUpdater: Cleared all added heroes from localStorage');
   }
 
   // Get statistics about updates
@@ -199,6 +262,14 @@ if (typeof window !== 'undefined') {
 
   // Expose to global scope for debugging
   window.dataUpdater = dataUpdater;
+  
+  // Add debugging helpers
+  window.clearFakeHeroes = () => DataUpdater.clearAddedHeroes();
+  window.getCombinedData = () => DataUpdater.getCombinedData();
+  window.getAddedHeroesCount = () => {
+    const saved = localStorage.getItem('updatedHeroesData');
+    return saved ? JSON.parse(saved).length : 0;
+  };
 }
 
 export default dataUpdater;

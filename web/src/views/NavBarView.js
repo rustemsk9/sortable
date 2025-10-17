@@ -4,7 +4,7 @@ export default class extends AbstractView {
     constructor() {
         super();
         this.searchCallback = null;
-        this.pageSizeCallback = null;
+        // this.pageSizeCallback = null;
     }
 
     async getHtml() {

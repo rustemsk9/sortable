@@ -201,7 +201,13 @@ export default class extends AbstractView {
     this.hero = heroes.find(hero => hero.id.toString() === this.heroId);
     
     if (!this.hero) {
-      throw new Error("Hero not found");
+        const localData = localStorage.getItem('updatedHeroesData');
+        if (localData) {
+            const localHeroes = JSON.parse(localData);
+            this.hero = localHeroes.find(hero => hero.id.toString() === this.heroId);
+        } else {
+            throw new Error("Hero not found");
+        }
     }
   }
 

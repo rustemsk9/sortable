@@ -381,7 +381,7 @@ export function createRandomHeroVariation(baseHero) {
 
   // Randomly modify power stats
   Object.keys(newHero.powerstats).forEach(stat => {
-    const modifier = Math.floor(Math.random() * 21) - 10; // -10 to +10
+    const modifier = Math.floor(Math.random() * 21) - 5; // -5 to +15
     newHero.powerstats[stat] = Math.max(1, Math.min(100, (newHero.powerstats[stat] || 50) + modifier));
   });
 

@@ -54,8 +54,9 @@ export default class extends AbstractView {
   }
 
   async loadHeroData() {
-    const response = await fetch("/src/data/data.json");
-    this.allHeroes = await response.json();
+    // Import the data loader to get combined data (original + added heroes)
+    const dataLoader = (await import('../data/load.js')).default;
+    this.allHeroes = await dataLoader.loadData();
   }
 
   setupComponentCallbacks() {

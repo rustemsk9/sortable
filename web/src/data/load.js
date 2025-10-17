@@ -31,9 +31,10 @@ class DataLoader {
     console.log('DataLoader: Stopped monitoring data.json');
   }
 
-  // Check if data.json has been modified
+  // Check if data.json has been modified or if fake data has been updated
   async checkForUpdates() {
     try {
+      // Check original data.json
       const response = await fetch('/src/data/data.json', {
         method: 'HEAD', // Only get headers, not the full content
         cache: 'no-cache' // Ensure we get fresh data
@@ -45,15 +46,23 @@ class DataLoader {
       // Use ETag or Last-Modified to detect changes
       const currentSignature = etag || lastModified;
       
+      // Also check for fake data updates in localStorage
+      const fakeUpdate = localStorage.getItem('fakeDataUpdate');
+      const fakeUpdateData = fakeUpdate ? JSON.parse(fakeUpdate) : null;
+      const fakeSignature = fakeUpdateData ? fakeUpdateData.timestamp : null;
+      
+      // Combine signatures
+      const combinedSignature = currentSignature + '|' + fakeSignature;
+      
       if (this.lastModified === null) {
         // First time checking
-        this.lastModified = currentSignature;
+        this.lastModified = combinedSignature;
         return;
       }
       
-      if (currentSignature && currentSignature !== this.lastModified) {
-        this.lastModified = currentSignature;
-        console.log('DataLoader: Data change detected, notifying callbacks');
+      if (combinedSignature !== this.lastModified) {
+        this.lastModified = combinedSignature;
+        console.log('DataLoader: Data change detected (real or fake), notifying callbacks');
         this.notifyDataChange();
       }
     } catch (error) {
@@ -87,9 +96,10 @@ class DataLoader {
     });
   }
 
-  // Load fresh data from data.json
+  // Load fresh data from data.json and combine with added heroes
   async loadData() {
     try {
+      // Load original data
       const response = await fetch('/src/data/data.json', {
         cache: 'no-cache' // Ensure we get fresh data
       });
@@ -98,9 +108,17 @@ class DataLoader {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
-      console.log('DataLoader: Fresh data loaded,', data.length, 'heroes');
-      return data;
+      const originalData = await response.json();
+      
+      // Load added heroes from localStorage
+      const savedHeroes = localStorage.getItem('updatedHeroesData');
+      const addedHeroes = savedHeroes ? JSON.parse(savedHeroes) : [];
+      
+      // Combine data
+      const combinedData = [...originalData, ...addedHeroes];
+      
+      console.log('DataLoader: Fresh data loaded - Original:', originalData.length, 'Added:', addedHeroes.length, 'Total:', combinedData.length);
+      return combinedData;
     } catch (error) {
       console.error('DataLoader: Error loading data:', error);
       throw error;
