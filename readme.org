@@ -18,9 +18,18 @@ Now let me update the NavBarView to include search functionality:
 Using "Replace String in File"
 
 
+```javascript
+    let own = this;
 ```
 
-```
+#+BEGIN_SRC javascript
+
+#+END_SRC
+
+#+RESULT
+
+
+
 Now let me update the Paginator component: 
 
 Using "Replace String in File"

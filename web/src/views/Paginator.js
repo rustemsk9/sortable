@@ -8,7 +8,6 @@ export default class extends AbstractView {
         this.totalItems = 0;
         this.pageSize = 20;
         this.pageChangeCallback = null;
-
     }
 
     async getHtml() {

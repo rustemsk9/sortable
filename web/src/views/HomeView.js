@@ -82,6 +82,7 @@ export default class extends AbstractView {
     this.updatePaginatorState();
   }
 
+  // Set up callback for paginator
   setupPaginatorCallback() {
     const paginatorElement = document.querySelector('#paginator');
     if (paginatorElement && window.currentPaginatorView) {
@@ -90,7 +91,6 @@ export default class extends AbstractView {
       });
     }
   }
-
   setupTableEventListeners() {
     // Column sorting
     const sortableHeaders = document.querySelectorAll('.sortable');
@@ -171,36 +171,57 @@ export default class extends AbstractView {
     }
   }
 
-  sortData() {
+sortData() {
     this.filteredHeroes.sort((a, b) => {
       let aValue = this.getColumnValue(a, this.sortColumn);
       let bValue = this.getColumnValue(b, this.sortColumn);
-      
-      // Handle missing values - always sort last
-      if (aValue === null || aValue === undefined || aValue === '' || aValue === 'null' || aValue === '-') {
-        return 1;
-      }
-      if (bValue === null || bValue === undefined || bValue === '' || bValue === 'null' || bValue === '-') {
-        return -1;
-      }
-      
-      // Handle numerical columns (weight, height, powerstats)
+
+      // Helper: normalize common "missing" tokens (strings)
+      const isMissingString = (v) => {
+        if (v === null || v === undefined) return true;
+        if (typeof v !== 'string') return false;
+        const s = v.trim().toLowerCase();
+        if (!s) return true;
+        // common tokens that should be treated as missing / non-numeric
+        const missingTokens = ['null', '-', 'variable', 'varies', 'n/a', 'na', 'unknown', '—', '–', '—'];
+        return missingTokens.includes(s);
+      };
+
+      // Special handling for numeric-like columns: height and weight
       if (['weight', 'height'].includes(this.sortColumn)) {
-        aValue = this.extractNumber(aValue);
-        bValue = this.extractNumber(bValue);
-      } else if (['intelligence', 'strength', 'speed', 'durability', 'power', 'combat'].includes(this.sortColumn)) {
+        const aNum = this.extractNumber(aValue);
+        const bNum = this.extractNumber(bValue);
+
+        // If both missing -> equal
+        if (aNum === null && bNum === null) return 0;
+        // If a missing -> put it after b
+        if (aNum === null) return 1;
+        // If b missing -> put it after a
+        if (bNum === null) return -1;
+
+        aValue = aNum;
+        bValue = bNum;
+      } else {
+        // Non-numeric columns: put missing values last
+        if (isMissingString(aValue))  {console.log("Missing aValue:", aValue); return 1;}
+        if (isMissingString(bValue)) {console.log("Missing bValue:", bValue); return -1;}
+      }
+
+      // Handle numerical powerstats (fall back to 0 for empty numeric powerstats if desired)
+      if (['intelligence', 'strength', 'speed', 'durability', 'power', 'combat'].includes(this.sortColumn)) {
         aValue = parseInt(aValue) || 0;
         bValue = parseInt(bValue) || 0;
       }
-      
-      // Sort comparison
+
+      // Final comparison
       let comparison = 0;
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         comparison = aValue.localeCompare(bValue);
       } else {
         comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       }
-      
+
+      // Respect sort direction; note: missing values already handled above (always last)
       return this.sortDirection === 'asc' ? comparison : -comparison;
     });
   }
@@ -228,9 +249,9 @@ export default class extends AbstractView {
       case 'gender':
         return hero.appearance?.gender || '';
       case 'height':
-        return hero.appearance?.height?.[1] || hero.appearance?.height?.[0] || '';
+        return hero.appearance?.height?.[0]
       case 'weight':
-        return hero.appearance?.weight?.[1] || hero.appearance?.weight?.[0] || '';
+        return hero.appearance?.weight?.[0]
       case 'placeOfBirth':
         return hero.biography?.placeOfBirth || '';
       case 'alignment':
@@ -241,9 +262,23 @@ export default class extends AbstractView {
   }
 
   extractNumber(value) {
-    if (!value) return 0;
-    const match = value.toString().match(/[\d.]+/);
-    return match ? parseFloat(match[0]) : 0;
+    // Return null for truly missing / non-numeric values so caller can treat them as "missing".
+    if (value === null || value === undefined) return null;
+    const s = value.toString().trim();
+    if (!s) return null;
+
+    const low = s.toLowerCase();
+    // Quick reject common non-numeric tokens
+    if (/^(variable|varies|n\/a|na|unknown|null|-|—|–|—)$/i.test(low)) return null;
+
+    // Find the first numeric token (allow commas and decimals and optional leading minus)
+    const match = s.match(/-?[\d,]*\.?\d+/);
+    if (!match) return null;
+
+    // Normalize comma thousand separators and parse
+    const numericString = match[0].replace(/,/g, '');
+    const n = parseFloat(numericString);
+    return Number.isFinite(n) ? n : null;
   }
 
   renderTable() {
