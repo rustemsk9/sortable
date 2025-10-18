@@ -2,7 +2,7 @@
 
 ** Information
 [[https://01.tomorrow-school.ai/git/root/public/src/branch/master/subjects/sortable][Source]]
-
+ 
 ** AI discussion
 
 I'll continue with the implementation. Let me start by creating the HeroDetailView component first. 
