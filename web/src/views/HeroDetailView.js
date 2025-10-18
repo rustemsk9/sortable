@@ -185,7 +185,7 @@ export default class extends AbstractView {
 
   async init() {
     try {
-      await this.loadHeroData();
+      await this.loadHeroData(); // TODO: proper json with proper data handler...
       this.renderHeroDetails();
       this.setupEventListeners();
     } catch (error) {
@@ -360,7 +360,9 @@ export default class extends AbstractView {
     const backButton = document.getElementById('back-to-home');
     if (backButton) {
       backButton.addEventListener('click', () => {
+        // window.history.back();
         window.history.pushState(null, null, '/');
+
         window.dispatchEvent(new PopStateEvent('popstate'));
       });
     }

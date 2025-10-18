@@ -88,9 +88,9 @@ const handlePopState = () => {
 // Handle data updates
 const handleDataUpdate = async () => {
   console.log("Data update detected, showing refresh notification");
-    // console.log("Data update detected, refreshing home view");
-//   if (window.currentHomeView && typeof window.currentHomeView.refreshData === 'function') {
-//     await window.currentHomeView.refreshData();
+  // console.log("Data update detected, refreshing home view");
+  //   if (window.currentHomeView && typeof window.currentHomeView.refreshData === 'function') {
+  //     await window.currentHomeView.refreshData();
 
   if (window.currentNavBarView && typeof window.currentNavBarView.showRefreshNotification === 'function') {
     window.currentNavBarView.showRefreshNotification();
