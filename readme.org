@@ -36,14 +36,14 @@ python3 -m http.server --directory ./web
 
 **** How It Works:
 
-1. ***** Navigation**: The navbar contains search and page size controls
-2. ***** Table Display**: Shows superhero data with clickable names linking to detail views
-3. ***** Pagination**: Bottom pagination component with page navigation
-4. ***** Data Updates**: 
-   - `load.js` monitors for data changes
-   - `updater.js` simulates new data every 10 seconds
-   - Components automatically refresh when data changes
-5. ***** Routing**: Clean URLs with proper SPA navigation
+1. **Navigation**: The navbar contains search and page size controls
+2. **Table Display**: Shows superhero data with clickable names linking to detail views
+3. **Pagination**: Bottom pagination component with page navigation
+4. **Data Updates**: 
+    - `load.js` monitors for data changes
+    - `updater.js` simulates new data every 10 seconds
+    - Components automatically refresh when data changes
+5. **Routing**: Clean URLs with proper SPA navigation
 
 **** Technical Architecture:
 - **Modular Components**: Each UI section is a separate, reusable component
