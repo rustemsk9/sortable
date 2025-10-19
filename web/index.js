@@ -4,7 +4,7 @@ import HeroDetailView from "./src/views/HeroDetailView.js";
 import Paginator from "./src/views/Paginator.js";
 import dataLoader from "./src/data/load.js";
 import dataUpdater from "./src/data/updater.js";
-
+// index.js
 // Global references to current view instances
 window.currentNavBarView = null;
 window.currentPaginatorView = null;
