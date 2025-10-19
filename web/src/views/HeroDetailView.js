@@ -194,7 +194,7 @@ export default class extends AbstractView {
     }
   }
 
-  async loadHeroData() {
+  async loadHeroData() { // TODO: proper data handler // check data from homeview?
     const response = await fetch("/src/data/data.json");
     const heroes = await response.json();
     
@@ -301,13 +301,13 @@ export default class extends AbstractView {
     `;
   }
 
-  renderPowerstats() {
+  renderPowerstats() { // TODO: css need proper stats view
     const stats = this.hero.powerstats || {};
     return Object.entries(stats).map(([stat, value]) => `
       <div class="stat-item">
         <span class="stat-label">${stat.charAt(0).toUpperCase() + stat.slice(1)}:</span>
         <span class="stat-value">${value || 'Unknown'}</span>
-        <div class="powerstats-bar">
+        <div class="powerstats-bar"> 
           <div class="powerstats-fill" style="width: ${value || 0}%"></div>
         </div>
       </div>
@@ -360,7 +360,7 @@ export default class extends AbstractView {
     const backButton = document.getElementById('back-to-home');
     if (backButton) {
       backButton.addEventListener('click', () => {
-        // window.history.back();
+        // window.history.back(); // TODO: simple SPA navigation, but need to ensure proper state
         window.history.pushState(null, null, '/');
 
         window.dispatchEvent(new PopStateEvent('popstate'));
