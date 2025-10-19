@@ -27,6 +27,11 @@
     padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0));
     /* background: rgba(255,255,255,0.95); */
     background: transparent;
+    /* WebKit support for backdrop blur + light translucent fallback */
+    -webkit-backdrop-filter: blur(6px);
+
+    /* keep backdrop effect confined and avoid rendering artifacts */
+    background-clip: padding-box;
     backdrop-filter: blur(6px);
     box-shadow: 0 -6px 20px rgba(0,0,0,0.12);
     border-top: 1px solid rgba(0,0,0,0.06);
@@ -35,7 +40,6 @@
     box-sizing: border-box;
     pointer-events: auto;
 }
-
 
     .pagination-info {
         color: #6c757d;

@@ -144,7 +144,7 @@ const initializeApp = async () => {
     
     // Handle link clicks for SPA navigation
     document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href^="/"]');
+      const link = e.target.closest('a[href^="/"]'); // Only intercept internal links
       if (link) {
         e.preventDefault();
         const href = link.getAttribute('href');
