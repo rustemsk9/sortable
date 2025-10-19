@@ -10,16 +10,32 @@
 </div>
 
 <style>
-    .paginator-view {
-        background: #f8f9fa;
-        padding: 15px 20px;
-        border-top: 1px solid #dee2e6;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
+.paginator-view {
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* respect device safe area on iOS */
+    bottom: calc(env(safe-area-inset-bottom) + 0px);
+    transition: bottom 160ms ease;
+    height: var(--paginator-height);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    /* visual styling */
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0));
+    /* background: rgba(255,255,255,0.95); */
+    background: transparent;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 -6px 20px rgba(0,0,0,0.12);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    gap: 12px;
+    z-index: 1000; /* float above page content */
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+
 
     .pagination-info {
         color: #6c757d;
@@ -93,7 +109,7 @@
         .paginator-view {
             flex-direction: column;
             text-align: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .pagination-controls {

@@ -1,4 +1,5 @@
 import AbstractView from "./AbstractView.js";
+import dataLoader from "../data/load.js";
 
 export default class extends AbstractView {
   constructor(params) {
@@ -15,199 +16,57 @@ export default class extends AbstractView {
   }
 
   async getHtml() {
-    return `
-      <div class="hero-detail-view">
-        <div class="hero-detail-container">
-          <div class="back-button-container">
-            <button id="back-to-home" class="back-button">← Back to Heroes</button>
-          </div>
-          <div id="hero-content">
-            <div class="loading">Loading hero details...</div>
-          </div>
-        </div>
-      </div>
-
-      <style>
-        .hero-detail-view {
-          padding: 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .back-button {
-          background: #007bff;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
-          margin-bottom: 20px;
-        }
-
-        .back-button:hover {
-          background: #0056b3;
-        }
-
-        .hero-card {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          margin-bottom: 20px;
-        }
-
-        .hero-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 30px;
-          text-align: center;
-        }
-
-        .hero-image {
-          width: 150px;
-          height: 150px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 5px solid white;
-          margin-bottom: 20px;
-        }
-
-        .hero-name {
-          font-size: 2.5em;
-          margin: 10px 0;
-          font-weight: bold;
-        }
-
-        .hero-full-name {
-          font-size: 1.2em;
-          opacity: 0.9;
-        }
-
-        .hero-content {
-          padding: 30px;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-          margin-bottom: 30px;
-        }
-
-        .stat-section {
-          background: #f8f9fa;
-          padding: 20px;
-          border-radius: 8px;
-          border-left: 4px solid #007bff;
-        }
-
-        .stat-section h3 {
-          margin: 0 0 15px 0;
-          color: #333;
-          font-size: 1.3em;
-        }
-
-        .stat-item {
-          display: flex;
-          justify-content: space-between;
-          margin: 8px 0;
-          padding: 5px 0;
-          border-bottom: 1px solid #e9ecef;
-        }
-
-        .stat-item:last-child {
-          border-bottom: none;
-        }
-
-        .stat-label {
-          font-weight: 600;
-          color: #555;
-        }
-
-        .stat-value {
-          color: #333;
-        }
-
-        .powerstats-bar {
-          width: 100%;
-          background: #e9ecef;
-          border-radius: 10px;
-          height: 20px;
-          margin-top: 5px;
-          overflow: hidden;
-        }
-
-        .powerstats-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #ff6b6b, #feca57);
-          border-radius: 10px;
-          transition: width 0.3s ease;
-        }
-
-        .biography-section {
-          background: #f8f9fa;
-          padding: 20px;
-          border-radius: 8px;
-          margin-top: 20px;
-        }
-
-        .error-message {
-          text-align: center;
-          color: #dc3545;
-          font-size: 1.2em;
-          padding: 40px;
-        }
-
-        .loading {
-          text-align: center;
-          color: #666;
-          font-size: 1.2em;
-          padding: 40px;
-        }
-
-        @media (max-width: 768px) {
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-          
-          .hero-header {
-            padding: 20px;
-          }
-          
-          .hero-name {
-            font-size: 2em;
-          }
-        }
-      </style>
-    `;
+    const response = await fetch("/src/views/herodetails.html");
+    const htmlString = await response.text();
+    return htmlString;
   }
 
   async init() {
     try {
-      await this.loadHeroData(); // TODO: proper json with proper data handler...
-      this.renderHeroDetails();
-      this.setupEventListeners();
+      await this.loadHeroData();
+      
+      // Only render if hero was found (loadHeroData handles errors by redirecting)
+      if (this.hero) {
+        this.renderHeroDetails();
+        this.setupEventListeners();
+      }
     } catch (error) {
       console.error("Error initializing HeroDetailView:", error);
+      // Error handling is done in loadHeroData, but this is a fallback
       this.renderError("Failed to load hero details");
     }
   }
 
-  async loadHeroData() { // TODO: proper data handler // check data from homeview?
-    const response = await fetch("/src/data/data.json");
-    const heroes = await response.json();
-    
-    this.hero = heroes.find(hero => hero.id.toString() === this.heroId);
-    
-    if (!this.hero) {
-        const localData = localStorage.getItem('updatedHeroesData');
-        if (localData) {
-            const localHeroes = JSON.parse(localData);
-            this.hero = localHeroes.find(hero => hero.id.toString() === this.heroId);
-        } else {
-            throw new Error("Hero not found");
-        }
+  async loadHeroData() {
+    // Use the cached data from DataLoader instead of making a fresh fetch
+    // This significantly reduces server requests and improves performance
+    try {
+      this.hero = await dataLoader.getHeroById(this.heroId);
+      
+      if (!this.hero) {
+        // Hero not found - redirect to 404 error page
+        const errorMessage = `Hero with ID "${this.heroId}" not found`;
+        const errorDetails = `The hero you're looking for doesn't exist in our database. Please check the ID and try again.`;
+        
+        console.warn('HeroDetailView: Hero not found for ID:', this.heroId);
+        
+        // Navigate to error page
+        const errorUrl = `/error?code=404&message=${encodeURIComponent(errorMessage)}&details=${encodeURIComponent(errorDetails)}`;
+        window.history.replaceState(null, null, errorUrl);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        return;
+      }
+      
+      console.log('HeroDetailView: Hero loaded from cache:', this.hero.name);
+    } catch (error) {
+      console.error('HeroDetailView: Error loading hero data:', error);
+      // Handle data loading errors
+      const errorMessage = 'Failed to load hero data';
+      const errorDetails = `Error: ${error.message}`;
+      
+      const errorUrl = `/error?code=500&message=${encodeURIComponent(errorMessage)}&details=${encodeURIComponent(errorDetails)}`;
+      window.history.replaceState(null, null, errorUrl);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }
 
@@ -352,7 +211,7 @@ export default class extends AbstractView {
   renderError(message) {
     const heroContent = document.getElementById('hero-content');
     if (heroContent) {
-      heroContent.innerHTML = `<div class="error-message">${message}</div>`;
+      heroContent.innerHTML = `<div class="error-message">OMG${message}</div>`;
     }
   }
 
@@ -360,11 +219,37 @@ export default class extends AbstractView {
     const backButton = document.getElementById('back-to-home');
     if (backButton) {
       backButton.addEventListener('click', () => {
-        // window.history.back(); // TODO: simple SPA navigation, but need to ensure proper state
+        // Track that user is going back to home from hero detail
+        this.trackBackNavigation();
+        
+        // Navigate back to home
         window.history.pushState(null, null, '/');
-
         window.dispatchEvent(new PopStateEvent('popstate'));
       });
+    }
+  }
+
+  // Track navigation back to home
+  trackBackNavigation() {
+    const navigationInfo = {
+      source: 'hero-detail-back',
+      timestamp: Date.now(),
+      heroId: this.heroId,
+      heroName: this.hero?.name || 'Unknown',
+      referrer: document.referrer,
+      url: window.location.href
+    };
+
+    try {
+      // Add to navigation history
+      let navHistory = JSON.parse(localStorage.getItem('navigationHistory') || '[]');
+      navHistory.unshift(navigationInfo);
+      navHistory = navHistory.slice(0, 10); // Keep only last 10
+      
+      localStorage.setItem('navigationHistory', JSON.stringify(navHistory));
+      console.log('HeroDetailView: Back navigation tracked:', navigationInfo);
+    } catch (error) {
+      console.error('HeroDetailView: Error tracking back navigation:', error);
     }
   }
 }

@@ -87,11 +87,11 @@ export default class extends AbstractView {
         }
     }
 
-    handleRefreshClick() {
+    async handleRefreshClick() {
         this.hideRefreshNotification();
         // Trigger data refresh through global event or callback
         if (window.currentHomeView && typeof window.currentHomeView.refreshData === 'function') {
-            window.currentHomeView.refreshData();
+            await window.currentHomeView.refreshData();
         }
     }
 }

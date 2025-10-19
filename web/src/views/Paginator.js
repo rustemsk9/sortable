@@ -29,6 +29,7 @@ export default class extends AbstractView {
         }
     }
 
+
     setupEventListeners() {
         const prevButton = document.getElementById('paginator-prev');
         const nextButton = document.getElementById('paginator-next');

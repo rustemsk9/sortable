@@ -28,11 +28,17 @@ export default class extends AbstractView {
 
   async init() {
     try {
+      // Track navigation to home view
+      this.trackNavigation(this.isReturningFromHeroDetail() ? 'hero-detail-back' : 'direct');
+      
       // Load superhero data
       await this.loadHeroData();
       
       // Initialize filtered data
       this.filteredHeroes = [...this.allHeroes];
+      
+      // Restore state from localStorage
+      this.restoreUIState();
       
       // Set up callbacks for navbar and paginator
       this.setupComponentCallbacks();
@@ -40,12 +46,16 @@ export default class extends AbstractView {
       // Set up event listeners for table sorting
       this.setupTableEventListeners();
       
-      // Initial sort by name
+      // Initial sort and filter
+      this.filterData();
       this.sortData();
       
       // Render initial view
       this.renderTable();
       this.updatePaginatorState();
+      
+      // Update navbar with restored state
+      this.updateNavBarState();
       
       console.log("HomeView initialized with", this.allHeroes.length, "superheroes");
     } catch (error) {
@@ -117,6 +127,7 @@ export default class extends AbstractView {
     this.currentPage = 1;
     this.renderTable();
     this.updatePaginatorState();
+    this.saveUIState(); // Save state when search changes
   }
 
   handlePageSizeChange(pageSize) {
@@ -124,12 +135,14 @@ export default class extends AbstractView {
     this.currentPage = 1;
     this.renderTable();
     this.updatePaginatorState();
+    this.saveUIState(); // Save state when page size changes
   }
 
   handlePageChange(page) {
     console.log(`Page change requested: ${page}`);
     this.currentPage = page;
     this.renderTable();
+    this.saveUIState(); // Save state when page changes
     // Don't call updatePaginatorState here to avoid circular updates
     // The paginator already knows its own state
   }
@@ -156,6 +169,7 @@ export default class extends AbstractView {
     this.updateSortHeaders();
     this.sortData();
     this.renderTable();
+    this.saveUIState(); // Save state when sorting changes
   }
 
   updateSortHeaders() {
@@ -346,10 +360,141 @@ sortData() {
 
   // Method to refresh data (will be called by load.js when data updates)
   async refreshData() {
+    // Clear the cache to ensure we get fresh data
+    const dataLoader = (await import('../data/load.js')).default;
+    dataLoader.clearCache();
+    
     await this.loadHeroData();
     this.filterData();
     this.renderTable();
     this.updatePaginatorState();
     console.log("Data refreshed");
+  }
+
+  // Save current UI state to localStorage
+  saveUIState() {
+    const state = {
+      searchTerm: this.searchTerm,
+      currentPage: this.currentPage,
+      pageSize: this.pageSize,
+      sortColumn: this.sortColumn,
+      sortDirection: this.sortDirection,
+      referer: document.referrer || window.location.href,
+      hash: window.location.hash,
+      fullUrl: window.location.href,
+      timestamp: Date.now()
+    };
+    
+    try {
+      localStorage.setItem('homeViewState', JSON.stringify(state));
+      console.log('HomeView: UI state saved to localStorage', {
+        referer: state.referer,
+        hash: state.hash,
+        searchTerm: state.searchTerm,
+        currentPage: state.currentPage
+      });
+    } catch (error) {
+      console.error('HomeView: Error saving UI state:', error);
+    }
+  }
+
+  // Restore UI state from localStorage
+  restoreUIState() {
+    try {
+      const savedState = localStorage.getItem('homeViewState');
+      if (!savedState) return;
+
+      const state = JSON.parse(savedState);
+      
+      // Check if state is not too old (expire after 1 hour)
+      const maxAge = 60 * 60 * 1000; // 1 hour in milliseconds
+      if (Date.now() - state.timestamp > maxAge) {
+        localStorage.removeItem('homeViewState');
+        console.log('HomeView: Expired UI state removed');
+        return;
+      }
+
+      // Restore state
+      this.searchTerm = state.searchTerm || '';
+      this.currentPage = state.currentPage || 1;
+      this.pageSize = state.pageSize || 20;
+      this.sortColumn = state.sortColumn || 'name';
+      this.sortDirection = state.sortDirection || 'asc';
+
+      console.log('HomeView: UI state restored from localStorage:', {
+        searchTerm: this.searchTerm,
+        currentPage: this.currentPage,
+        pageSize: this.pageSize,
+        sortColumn: this.sortColumn,
+        sortDirection: this.sortDirection,
+        referer: state.referer,
+        hash: state.hash,
+        fullUrl: state.fullUrl
+      });
+
+      // If there's a hash in the restored state, restore it
+      if (state.hash && state.hash !== window.location.hash) {
+        console.log('HomeView: Restoring hash from state:', state.hash);
+        window.location.hash = state.hash;
+      }
+    } catch (error) {
+      console.error('HomeView: Error restoring UI state:', error);
+      // Remove corrupted state
+      localStorage.removeItem('homeViewState');
+    }
+  }
+
+  // Update navbar with current state
+  updateNavBarState() {
+    if (window.currentNavBarView) {
+      window.currentNavBarView.updateSearchValue(this.searchTerm);
+      window.currentNavBarView.updatePageSize(this.pageSize);
+    }
+  }
+
+  // Clear UI state (useful for testing or reset)
+  clearUIState() {
+    localStorage.removeItem('homeViewState');
+    console.log('HomeView: UI state cleared');
+  }
+
+  // Track navigation source (useful for analytics and state management)
+  trackNavigation(source = 'direct') {
+    const navigationInfo = {
+      source,
+      timestamp: Date.now(),
+      referrer: document.referrer,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      hash: window.location.hash
+    };
+
+    try {
+      // Keep a history of recent navigations (max 10)
+      let navHistory = JSON.parse(localStorage.getItem('navigationHistory') || '[]');
+      navHistory.unshift(navigationInfo);
+      navHistory = navHistory.slice(0, 10); // Keep only last 10
+      
+      localStorage.setItem('navigationHistory', JSON.stringify(navHistory));
+      console.log('HomeView: Navigation tracked:', navigationInfo);
+    } catch (error) {
+      console.error('HomeView: Error tracking navigation:', error);
+    }
+  }
+
+  // Get navigation history
+  getNavigationHistory() {
+    try {
+      return JSON.parse(localStorage.getItem('navigationHistory') || '[]');
+    } catch (error) {
+      console.error('HomeView: Error getting navigation history:', error);
+      return [];
+    }
+  }
+
+  // Check if user came from a hero detail page
+  isReturningFromHeroDetail() {
+    const history = this.getNavigationHistory();
+    return history.length > 0 && history[0].source === 'hero-detail-back';
   }
 }

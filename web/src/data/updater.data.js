@@ -352,6 +352,117 @@ export function getRandomAdditionalHero() {
   return JSON.parse(JSON.stringify(additionalHeroes[randomIndex])); // Deep clone
 }
 
+// Function to check if a hero already exists (by name or ID)
+export function isHeroDuplicate(newHero, existingHeroes) {
+  return existingHeroes.some(hero => 
+    hero.id === newHero.id || 
+    hero.name.toLowerCase() === newHero.name.toLowerCase() ||
+    hero.slug === newHero.slug
+  );
+}
+
+// Function to get a unique random hero (checks against existing heroes)
+export function getUniqueRandomHero(existingHeroes = []) {
+  let attempts = 0;
+  const maxAttempts = 50; // Prevent infinite loops
+  
+  while (attempts < maxAttempts) {
+    const candidate = getRandomAdditionalHero();
+    
+    // Generate unique ID if it conflicts
+    if (existingHeroes.some(hero => hero.id === candidate.id)) {
+      candidate.id = Date.now() + Math.floor(Math.random() * 10000);
+      candidate.slug = `${candidate.id}-${candidate.name.toLowerCase().replace(/\s+/g, '-')}`;
+    }
+    
+    if (!isHeroDuplicate(candidate, existingHeroes)) {
+      console.log('DataUpdater: Generated unique hero:', candidate.name);
+      return candidate;
+    }
+    
+    attempts++;
+  }
+  
+  // If we can't find a unique hero, create a variation
+  console.warn('DataUpdater: Could not find unique hero, creating variation');
+  return createUniqueHeroVariation(existingHeroes);
+}
+
+// Function to create a guaranteed unique hero variation
+function createUniqueHeroVariation(existingHeroes) {
+  const baseHero = additionalHeroes[Math.floor(Math.random() * additionalHeroes.length)];
+  let attempts = 0;
+  const maxAttempts = 100;
+  
+  while (attempts < maxAttempts) {
+    const variation = createRandomHeroVariation(baseHero);
+    
+    if (!isHeroDuplicate(variation, existingHeroes)) {
+      console.log('DataUpdater: Created unique variation:', variation.name);
+      return variation;
+    }
+    
+    // Make the variation more unique
+    variation.name = `${variation.name} v${attempts + 1}`;
+    variation.id = Date.now() + Math.floor(Math.random() * 10000) + attempts;
+    variation.slug = `${variation.id}-${variation.name.toLowerCase().replace(/\s+/g, '-')}`;
+    attempts++;
+  }
+  
+  // Fallback: create a completely unique hero
+  return createFallbackUniqueHero(existingHeroes);
+}
+
+// Fallback function to create a completely unique hero
+function createFallbackUniqueHero(existingHeroes) {
+  const timestamp = Date.now();
+  const randomSuffix = Math.floor(Math.random() * 10000);
+  
+  return {
+    id: timestamp + randomSuffix,
+    name: `Unique Hero ${randomSuffix}`,
+    slug: `${timestamp + randomSuffix}-unique-hero-${randomSuffix}`,
+    powerstats: {
+      intelligence: Math.floor(Math.random() * 100) + 1,
+      strength: Math.floor(Math.random() * 100) + 1,
+      speed: Math.floor(Math.random() * 100) + 1,
+      durability: Math.floor(Math.random() * 100) + 1,
+      power: Math.floor(Math.random() * 100) + 1,
+      combat: Math.floor(Math.random() * 100) + 1
+    },
+    appearance: {
+      gender: ["Male", "Female", "Non-binary"][Math.floor(Math.random() * 3)],
+      race: "Unknown",
+      height: ["Variable", "Variable"],
+      weight: ["Variable", "Variable"],
+      eyeColor: "Unknown",
+      hairColor: "Unknown"
+    },
+    biography: {
+      fullName: `Unique Hero ${randomSuffix}`,
+      alterEgos: "No alter egos found.",
+      aliases: [`Hero-${randomSuffix}`],
+      placeOfBirth: "Unknown",
+      firstAppearance: `Unique Comics #${randomSuffix} (2025)`,
+      publisher: "Random Comics",
+      alignment: ["good", "bad", "neutral"][Math.floor(Math.random() * 3)]
+    },
+    work: {
+      occupation: "Superhero",
+      base: "Unknown"
+    },
+    connections: {
+      groupAffiliation: "Independent",
+      relatives: "Unknown"
+    },
+    images: {
+      xs: "https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/images/xs/1-a-bomb.jpg",
+      sm: "https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/images/sm/1-a-bomb.jpg",
+      md: "https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/images/md/1-a-bomb.jpg"
+    }
+  };
+}
+
 // Function to get all additional heroes
 export function getAllAdditionalHeroes() {
   return JSON.parse(JSON.stringify(additionalHeroes)); // Deep clone
@@ -367,7 +478,8 @@ export function createRandomHeroVariation(baseHero) {
     { suffix: "Omega", alignment: "good" },
     { suffix: "Alpha", alignment: "good" },
     { suffix: "Neo", alignment: "good" },
-    { suffix: "Quantum", alignment: "neutral" }
+    { suffix: "Quantum", alignment: "neutral" },
+    { suffix: "Tomorrow-school finisher", alignment: "neutral" }
   ];
 
   const variation = variations[Math.floor(Math.random() * variations.length)];

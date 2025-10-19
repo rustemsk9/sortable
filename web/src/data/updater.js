@@ -1,4 +1,4 @@
-import { getRandomAdditionalHero, createRandomHeroVariation } from './updater.data.js';
+import { getRandomAdditionalHero, createRandomHeroVariation, getUniqueRandomHero, isHeroDuplicate } from './updater.data.js';
 
 class DataUpdater {
   constructor() {
@@ -97,20 +97,39 @@ class DataUpdater {
     try {
       let newHero;
       
+      // Get all existing heroes (original + added) for duplicate checking
+      const allExistingHeroes = [...this.originalData, ...this.addedHeroes];
+      
       // Decide what type of update to perform
       const updateType = Math.random();
       
       if (updateType < 0.6) {
         // 60% chance: Add a completely new hero from our predefined list
-        newHero = getRandomAdditionalHero();
-        newHero.id = Date.now() + Math.floor(Math.random() * 1000);
-        console.log('DataUpdater: Adding new predefined hero:', newHero.name);
+        newHero = getUniqueRandomHero(allExistingHeroes);
+        console.log('DataUpdater: Adding new unique hero:', newHero.name);
       } else {
         // 40% chance: Create a variation of an existing hero
         const randomIndex = Math.floor(Math.random() * this.originalData.length);
         const baseHero = this.originalData[randomIndex];
         newHero = createRandomHeroVariation(baseHero);
-        console.log('DataUpdater: Adding variation of', baseHero.name, ':', newHero.name);
+        
+        // Ensure the variation is unique
+        let attempts = 0;
+        while (isHeroDuplicate(newHero, allExistingHeroes) && attempts < 10) {
+          newHero = createRandomHeroVariation(baseHero);
+          newHero.name = `${newHero.name} v${attempts + 1}`;
+          newHero.id = Date.now() + Math.floor(Math.random() * 10000) + attempts;
+          newHero.slug = `${newHero.id}-${newHero.name.toLowerCase().replace(/\s+/g, '-')}`;
+          attempts++;
+        }
+        
+        console.log('DataUpdater: Adding unique variation of', baseHero.name, ':', newHero.name);
+      }
+
+      // Final duplicate check
+      if (isHeroDuplicate(newHero, allExistingHeroes)) {
+        console.warn('DataUpdater: Generated hero is still duplicate, skipping update');
+        return;
       }
 
       // Add the new hero to current data
@@ -120,7 +139,7 @@ class DataUpdater {
       // Simulate writing to the server by making a fake POST request
       await this.simulateDataWrite();
 
-      console.log('DataUpdater: Successfully added hero. Total heroes:', this.currentData.length);
+      console.log('DataUpdater: Successfully added unique hero. Total heroes:', this.currentData.length);
     } catch (error) {
       console.error('DataUpdater: Error during fake update:', error);
     }

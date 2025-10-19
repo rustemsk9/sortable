@@ -1,10 +1,20 @@
 ** Instructions
-- ./server.sh
+    #+BEGIN_SRC python
+    python3 -m http.server 14550 --directory ./web
+    #+END_SRC
 чтобы запустить
 
 ** Information
 [[https://01.tomorrow-school.ai/git/root/public/src/branch/master/subjects/sortable][Source Repository]]
- 
+
+
+| Term	| Context |	Function | 	Goal |
+|-------|---------|-----------|-------|
+| Include |	Boolean Logic |	Mandatory presence |	Refine results to only those that contain the term. |
+| Exclude |	Boolean Logic |	Mandatory absence |	Refine results to only those that do not contain the term. |
+| Fuzzy |	Approximate Matching |	Similarity tolerance |	Broaden results to include close, but not exact, matches (e.g., handling typos). |
+
+
 ** Details
 *** Features Implemented:
 
