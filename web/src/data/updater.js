@@ -2,7 +2,7 @@ import { getRandomAdditionalHero, createRandomHeroVariation } from './updater.da
 
 class DataUpdater {
   constructor() {
-    this.updateInterval = 10000; // 10 seconds
+    this.updateInterval = 8000; // 8 seconds
     this.intervalId = null;
     this.isRunning = false;
     this.originalData = null;
