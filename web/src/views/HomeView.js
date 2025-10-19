@@ -217,8 +217,8 @@ sortData() {
         bValue = bNum;
       } else {
         // Non-numeric columns: put missing values last
-        if (isMissingString(aValue))  {console.log("Missing aValue:", aValue); return 1;}
-        if (isMissingString(bValue)) {console.log("Missing bValue:", bValue); return -1;}
+        if (isMissingString(aValue)) return 1;
+        if (isMissingString(bValue)) return -1;
       }
 
       // Handle numerical powerstats (fall back to 0 for empty numeric powerstats if desired)
