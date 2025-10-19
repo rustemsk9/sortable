@@ -1,7 +1,5 @@
 ** Instructions
-#+BEGIN_SRC python
-python3 -m http.server --directory ./web
-#+END_SRC
+- ./server.sh
 чтобы запустить
 
 ** Information
