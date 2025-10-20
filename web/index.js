@@ -10,6 +10,20 @@ window.currentNavBarView = null;
 window.currentPaginatorView = null;
 window.currentHomeView = null;
 
+async function loadServerConfig() {
+  try {
+    const res = await fetch('/config.json', { cache: 'no-store' });
+    if (!res.ok) {
+      console.warn('No server config available:', res.status);
+      return;
+    }
+    window.serverConfig = await res.json();
+    console.log('Loaded server config:', window.serverConfig);
+  } catch (err) {
+    console.warn('Failed to load server config:', err);
+  }
+}
+
 const router = async () => {
   const routes = [
     { path: "/", view: HomeView },
@@ -40,6 +54,12 @@ const router = async () => {
   }
 
   try {
+    // Load server-provided config (if any)
+    await loadServerConfig();
+
+    // Set up data change monitoring
+    dataLoader.onDataChange(handleDataUpdate);
+    
     // Initialize NavBar
     const navBarView = new NavBarView();
     window.currentNavBarView = navBarView;
