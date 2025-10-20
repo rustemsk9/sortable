@@ -1,1 +1,1 @@
-{"args":["--foo","bar"],"env":{"MODE":"dev"}}
+{"args":["--foo","barsss","--baz","quxss"],"env":{"MODE":"dev"}}

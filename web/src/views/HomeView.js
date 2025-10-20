@@ -497,4 +497,9 @@ sortData() {
     const history = this.getNavigationHistory();
     return history.length > 0 && history[0].source === 'hero-detail-back';
   }
+
+  // onConfigUpdate(data) {
+  //   console.log('CONFIG <<<<<<<<', data);
+  //   // Handle any config updates if necessary
+  // }
 }

@@ -94,4 +94,9 @@ export default class extends AbstractView {
             await window.currentHomeView.refreshData();
         }
     }
+
+    // onConfigUpdate(data) {
+    //     console.log('CONFIG <<<<<<<<', data);
+    //     // Handle any config updates if necessary
+    // }
 }

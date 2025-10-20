@@ -1,13 +1,14 @@
 class DataLoader {
   constructor() {
     this.lastModified = null;
-    this.checkInterval = 30000; // Check every 30 seconds (reduced from 10s to prevent throttling)
+    this.checkInterval = 10000; // Check every 30 seconds (reduced from 10s to prevent throttling)
     this.intervalId = null;
     this.dataChangeCallbacks = [];
     this.isRunning = false;
     this.cachedData = null;
     this.cacheTimestamp = null;
     this.cacheMaxAge = 60000; // Cache valid for 1 minute
+    this.configChangeCallbacks = [];
   }
 
   // Start monitoring data.json for changes
@@ -34,6 +35,23 @@ class DataLoader {
     console.log('DataLoader: Stopped monitoring data.json');
   }
 
+  removeConfigChangeCallback(callback) {
+    const i = this.configChangeCallbacks.indexOf(callback);
+    if (i > -1) this.configChangeCallbacks.splice(i, 1);
+  }
+
+  // Notify config callbacks
+  async notifyConfigChange(newConfig) {
+    this.clearCache(); // optional: clear cache if config affects data
+    for (const cb of this.configChangeCallbacks) {
+      try {
+        await cb(newConfig);
+      } catch (err) {
+        console.error('DataLoader: config callback error', err);
+      }
+    }
+  }
+
   // Check if data.json has been modified or if fake data has been updated
   async checkForUpdates() {
     try {
@@ -43,19 +61,36 @@ class DataLoader {
         cache: 'no-cache' // Ensure we get fresh data
       });
       
+      // Also check server config file for changes
+     let configSignature = null;
+     try {
+       const cfgResp = await fetch('/config.json', { method: 'HEAD', cache: 'no-cache' });
+       const cfgETag = cfgResp.headers.get('ETag');
+
+       const cfgLast = cfgResp.headers.get('Last-Modified');
+       configSignature = cfgETag || cfgLast || null;
+     } catch (cfgErr) {
+       // ignore config HEAD failures
+       configSignature = null;
+      
+     }
+      
       const lastModified = response.headers.get('Last-Modified');
       const etag = response.headers.get('ETag');
       
       // Use ETag or Last-Modified to detect changes
       const currentSignature = etag || lastModified;
       
+      // combine config signature into the current signature
+      const currentWithConfig = currentSignature + '|' + (configSignature || '');
+      
       // Also check for fake data updates in localStorage
       const fakeUpdate = localStorage.getItem('fakeDataUpdate');
       const fakeUpdateData = fakeUpdate ? JSON.parse(fakeUpdate) : null;
       const fakeSignature = fakeUpdateData ? fakeUpdateData.timestamp : null;
       
-      // Combine signatures
-      const combinedSignature = currentSignature + '|' + fakeSignature;
+      // Combine signatures (data + config + fake updates)
+      const combinedSignature = (currentWithConfig || '') + '|' + (fakeSignature || '');
       
       if (this.lastModified === null) {
         // First time checking
@@ -64,8 +99,21 @@ class DataLoader {
       }
       
       if (combinedSignature !== this.lastModified) {
+        // fetch fresh config when signature changed (best-effort)
+        let newConfig = null;
+        try {
+          const cfgResp = await fetch('/config.json', { cache: 'no-cache' });
+          if (cfgResp.ok) newConfig = await cfgResp.json();
+        } catch (e) { /* ignore */ }
+
+        // notify config-specific callbacks
+        if (newConfig) {
+          await this.notifyConfigChange(newConfig);
+        }
+
+        // notify general data change callbacks (existing behavior)
         this.lastModified = combinedSignature;
-        console.log('DataLoader: Data change detected (real or fake), notifying callbacks');
+        console.log('DataLoader: Data change detected (config, real or fake), notifying callbacks');
         this.notifyDataChange();
       }
     } catch (error) {
@@ -77,6 +125,13 @@ class DataLoader {
   onDataChange(callback) {
     if (typeof callback === 'function') {
       this.dataChangeCallbacks.push(callback);
+    }
+  }
+
+  // Add callback function to be called when config changes
+  onConfigChange(callback) {
+    if (typeof callback === 'function') {
+      this.configChangeCallbacks.push(callback);
     }
   }
 

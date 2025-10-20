@@ -59,7 +59,8 @@ const router = async () => {
 
     // Set up data change monitoring
     dataLoader.onDataChange(handleDataUpdate);
-    
+    dataLoader.onConfigChange(handleConfigUpdate);
+
     // Initialize NavBar
     const navBarView = new NavBarView();
     window.currentNavBarView = navBarView;
@@ -121,8 +122,6 @@ const handlePopState = () => {
   router();
 };
 
-
-
 // Global error handler for unhandled exceptions
 window.addEventListener('error', (event) => {
   console.error('Unhandled error:', event.error);
@@ -145,6 +144,25 @@ const handleDataUpdate = async () => {
   }
 };
 
+// --- config change handler ---
+const handleConfigUpdate = async (newConfig) => {
+  if (!newConfig) return;
+  // simple equality check (could be improved)
+  const prev = window.serverConfig ? JSON.stringify(window.serverConfig) : null;
+  const cur = JSON.stringify(newConfig);
+  if (prev === cur) return;
+  window.serverConfig = newConfig;
+  console.log('Config updated:', window.serverConfig);
+
+  if (window.currentNavBarView && typeof window.currentNavBarView.onConfigUpdate === 'function') {
+    window.currentNavBarView.onConfigUpdate(window.serverConfig);
+  }
+  if (window.currentHomeView && typeof window.currentHomeView.onConfigUpdate === 'function') {
+    window.currentHomeView.onConfigUpdate(window.serverConfig);
+  }
+};
+// --- end config handler ---
+
 // Initialize the application
 const initializeApp = async () => {
   try {
@@ -152,7 +170,7 @@ const initializeApp = async () => {
 
     // Set up data change monitoring
     dataLoader.onDataChange(handleDataUpdate);
-    
+    dataLoader.onConfigChange(handleConfigUpdate);
     // Set up fake data updates listener
     window.addEventListener('dataUpdated', (event) => {
       console.log('New hero added:', event.detail.newHero?.name);
