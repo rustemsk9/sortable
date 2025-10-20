@@ -3,8 +3,28 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sortable</title>
+    
+    <!-- Main SEO -->
+    <title>Sortable – Convenient Element Sorting</title>
+    <meta name="description" content="Sortable – a simple library for sorting elements on the page.">
+    <meta name="keywords" content="sortable, sorting, UI, elements, web">
+    <meta name="author" content="Example">
+
+    <!-- Open Graph for social media -->
+    <meta property="og:title" content="Sortable – Convenient Element Sorting">
+    <meta property="og:description" content="Sortable – a simple and convenient library for sorting elements on the page.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/favicon.png">
+    <meta property="og:url" content="https://example.com">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
+
 
 <body>
     <div id="navbar" class="nav"></div>
@@ -12,44 +32,5 @@
     <div id="paginator"></div>
     <script type="module" src="index.js"></script>
 </body>
-</style>
-<style>
-    :root{
-        --footer-height: 56px;
-        --paginator-height: 66px;
-    }
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background-color: #d5d4d4;
-        /* Reserve space at bottom for fixed paginator only. Footer is in normal flow. */
-        /* Adding extra 16px as a small buffer */
-        padding-bottom: calc(var(--paginator-height) + 26px);
-    }
 
-    /* Ensure main app area doesn't get hidden behind the fixed controls */
-    #app {
-        min-height: calc(100vh - var(--paginator-height) );
-        box-sizing: border-box;
-    }
-
-#footer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 12px 20px;
-    height: var(--footer-height);
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* small screens: reduce height and spacing */
-@media (max-width: 480px) {
-    :root { --paginator-height: 56px; }
-    #paginator { padding-left: 12px; padding-right: 12px; }
-    #paginator .inner { gap: 8px; }
-}
-
-</style>
 </html>
