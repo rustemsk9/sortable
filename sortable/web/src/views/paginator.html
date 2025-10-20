@@ -1,0 +1,124 @@
+<div class='paginator-view'>
+    <div class="pagination-info">
+        <span id="paginator-info">Loading...</span>
+    </div>
+    <div class="pagination-controls">
+        <button id="paginator-prev" class="page-btn" disabled>Previous</button>
+        <div id="paginator-numbers" class="page-numbers"></div>
+        <button id="paginator-next" class="page-btn">Next</button>
+    </div>
+</div>
+
+<style>
+.paginator-view {
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* respect device safe area on iOS */
+    bottom: calc(env(safe-area-inset-bottom) + 0px);
+    transition: bottom 160ms ease;
+    height: var(--paginator-height);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    /* visual styling */
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0));
+    /* background: rgba(255,255,255,0.95); */
+    background: transparent;
+    /* WebKit support for backdrop blur + light translucent fallback */
+    -webkit-backdrop-filter: blur(6px);
+
+    /* keep backdrop effect confined and avoid rendering artifacts */
+    background-clip: padding-box;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 -6px 20px rgba(0,0,0,0.12);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    gap: 12px;
+    z-index: 1000; /* float above page content */
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .page-btn {
+        padding: 8px 16px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #495057;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: #f8f9fa;
+    }
+
+    .page-numbers {
+        display: flex;
+        gap: 5px;
+    }
+
+    .page-number {
+        padding: 6px 12px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #495057;
+        cursor: pointer;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+        user-select: none;
+    }
+
+    .page-number:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    .page-number.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    .page-ellipsis {
+        padding: 6px 8px;
+        color: #6c757d;
+        user-select: none;
+    }
+
+    @media (max-width: 768px) {
+        .paginator-view {
+            flex-direction: column;
+            text-align: center;
+            gap: 8px;
+        }
+
+        .pagination-controls {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>

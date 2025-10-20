@@ -1,0 +1,74 @@
+** Instructions
+    #+BEGIN_SRC python
+    python3 -m http.server 14550 --directory ./web
+    #+END_SRC
+чтобы запустить
+
+** Information
+[[https://01.tomorrow-school.ai/git/root/public/src/branch/master/subjects/sortable][Source Repository]]
+
+
+| Term	| Context |	Function | 	Goal |
+|-------|---------|-----------|-------|
+| Include |	Boolean Logic |	Mandatory presence |	Refine results to only those that contain the term. |
+| Exclude |	Boolean Logic |	Mandatory absence |	Refine results to only those that do not contain the term. |
+| Fuzzy |	Approximate Matching |	Similarity tolerance |	Broaden results to include close, but not exact, matches (e.g., handling typos). |
+
+
+** Details
+*** Features Implemented:
+
+**** 1.Component Architecture ✅
+- **NavBarView.js**: Now handles search functionality and page size selection
+- **Paginator.js**: Handles pagination with dynamic page numbers and navigation
+- **HomeView.js**: Refactored to work with separate components, focuses on table display and sorting
+- **HeroDetailView.js**: New component for detailed hero information display
+
+**** 2. **Routing System ✅
+- **Updated index.js**: Now handles multiple routes including `/info/hero?id=X`
+- **SPA Navigation**: Proper single-page application routing with history management
+- **Hero Detail Route**: `/info/hero?id={heroId}` displays detailed hero information
+
+**** 3. Data Management ✅
+- **load.js**: Monitors data.json for changes and triggers updates
+- **updater.js**: Fake data updater that adds new heroes every 10 seconds
+- **updater.data.js**: Predefined hero data for the fake updater system
+
+**** 4. Key Features: ✅
+- ✅ **Search**: Interactive search in navbar, filters as you type
+- ✅ **Pagination**: Dynamic pagination with customizable page sizes (10, 20, 50, 100, All)
+- ✅ **Sorting**: Click column headers to sort (with visual indicators)
+- ✅ **Hero Details**: Click hero names to view detailed information
+- ✅ **Live Updates**: Data automatically refreshes when changes are detected
+- ✅ **Fake Data Updates**: New heroes added every 10 seconds automatically
+
+**** How It Works:
+
+1. **Navigation**: The navbar contains search and page size controls
+2. **Table Display**: Shows superhero data with clickable names linking to detail views
+3. **Pagination**: Bottom pagination component with page navigation
+4. **Data Updates**: 
+    - `load.js` monitors for data changes
+    - `updater.js` simulates new data every 10 seconds
+    - Components automatically refresh when data changes
+5. **Routing**: Clean URLs with proper SPA navigation
+
+**** Technical Architecture:
+- **Modular Components**: Each UI section is a separate, reusable component
+- **State Management**: Components communicate through callbacks and global references
+- **Data Layer**: Separate data loading and update mechanisms
+- **Responsive Design**: Mobile-friendly layout with proper CSS
+
+**** Future Code Recommendations:
+
+For production use, consider:
+1. **Real API Integration**: Replace fake updater with actual server endpoints
+2. **State Management Library**: Consider Redux or similar for complex state
+3. **Component Framework**: Migration to React/Vue for better component lifecycle
+4. **TypeScript**: Add type safety for better development experience
+5. **Testing**: Add unit tests for components and data layers
+6. **Caching**: Implement proper caching strategies for data
+7. **Error Handling**: Enhanced error boundaries and user feedback
+8. **Accessibility**: ARIA labels and keyboard navigation support
+
+All requested features implemented! 🚀
